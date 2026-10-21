@@ -86,3 +86,56 @@ A sample of prefix `1037` contains multiple coordinates and repeated coordinate 
 **Decision:** Do not join the raw geolocation table directly to customer or seller records using only the postal prefix. Do not arbitrarily select one coordinate per prefix. Geographic enrichment is deferred until a defensible lookup or aggregation method is established.
 
 The core delivery analysis can begin using the customer and seller location attributes supplied in their respective source tables.
+
+## 9. Delivery timestamp validation and baseline KPI
+
+### Timestamp validation
+
+The five order timestamps were parsed as datetimes and checked for missing values and chronological inconsistencies.
+
+| Validation check | Result |
+|---|---:|
+| Carrier handoff before purchase | 166 orders |
+| Customer delivery before carrier handoff | 23 orders |
+| Orders with at least one chronology violation | 189 orders |
+| Late orders that also have chronology violations | 3 orders |
+
+The violations overlap: 189 is the distinct-order count with at least one of the two chronology issues, not the sum of both violation counts.
+
+### Missing customer-delivery timestamps
+
+A total of 2,965 orders lack a customer-delivery timestamp.
+
+| Order status | Missing timestamps |
+|---|---:|
+| Shipped | 1,107 |
+| Canceled | 619 |
+| Unavailable | 609 |
+| Invoiced | 314 |
+| Processing | 301 |
+| Delivered | 8 |
+| Created | 5 |
+| Approved | 2 |
+| **Total** | **2,965** |
+
+The eight orders marked `delivered` despite missing customer-delivery timestamps were inspected separately. Seven have a carrier-handoff timestamp; one has neither a carrier-handoff nor a customer-delivery timestamp. Their actual delivery timeliness cannot be established from the available timestamps.
+
+### Baseline late-delivery KPI
+
+**Definition:** The percentage of orders with both actual customer-delivery and estimated-delivery timestamps for which actual customer delivery occurred after the estimated delivery timestamp.
+
+Formula:
+
+Late delivery rate = (orders delivered after estimate / orders with both timestamps) × 100
+
+| Metric | Result |
+|---|---:|
+| Total orders | 99,441 |
+| Orders with actual customer-delivery timestamp | 96,476 |
+| Orders with both actual and estimated delivery timestamps | 96,476 |
+| Orders delivered after estimate | 7,827 |
+| Baseline late-delivery rate | 8.11% |
+
+Orders without an actual customer-delivery timestamp are excluded from this baseline calculation, not classified as on time or late. Missing timestamps and chronology violations should be reported as separate data-quality measures.
+
+This is an initial descriptive baseline for the supplied historical dataset, not a validated current business-performance benchmark. Before finalizing the KPI, the analysis should explicitly define the eligible order population and treatment of order statuses.
