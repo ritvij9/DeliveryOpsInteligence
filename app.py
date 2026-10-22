@@ -70,10 +70,16 @@ eligible["days_late_vs_estimate"] = pd.to_numeric(
 st.sidebar.header("Filters")
 
 months = sorted(eligible["purchase_month"].dropna().unique())
+
+default_months = [
+    month for month in months
+    if "2018-01" <= month <= "2018-08"
+]
+
 selected_months = st.sidebar.multiselect(
     "Purchase month",
     months,
-    default=months,
+    default=default_months,
 )
 
 states = sorted(customers["customer_state"].dropna().unique())
