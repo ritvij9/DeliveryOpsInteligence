@@ -4,6 +4,9 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 import streamlit as st
+import shutil
+import urllib.request
+import zipfile
 
 st.set_page_config(
     page_title="DeliveryOps Intelligence",
@@ -18,10 +21,66 @@ RAW = ROOT / "data" / "raw"
 st.title("DeliveryOps Intelligence")
 st.caption("E-commerce delivery performance | Olist historical dataset")
 
-if not PARQUET.exists():
-    st.error("Processed dataset not found. Run the data pipeline first.")
-    st.code("python scripts/run_order_delivery_base.py")
-    st.stop()
+DATA_BUNDLE_URL = (
+    "https://github.com/ritvij9/DeliveryOpsInteligence/"
+    "releases/download/v1.0.0/deliveryops-data.zip"
+)
+
+
+def ensure_data_files():
+    required_files = {
+        "order_delivery_base.parquet": PARQUET,
+        "olist_customers_dataset.csv": RAW / "olist_customers_dataset.csv",
+        "olist_order_items_dataset.csv": RAW / "olist_order_items_dataset.csv",
+    }
+
+    if all(path.exists() for path in required_files.values()):
+        return
+
+    archive_path = ROOT / "deliveryops-data.zip"
+
+    try:
+        PARQUET.parent.mkdir(parents=True, exist_ok=True)
+        RAW.mkdir(parents=True, exist_ok=True)
+
+        with urllib.request.urlopen(DATA_BUNDLE_URL, timeout=120) as response:
+            with archive_path.open("wb") as output:
+                shutil.copyfileobj(response, output)
+
+        with zipfile.ZipFile(archive_path, "r") as archive:
+            for member in archive.namelist():
+                filename = Path(member).name
+
+                if filename not in required_files:
+                    continue
+
+                target = required_files[filename]
+
+                with archive.open(member) as source:
+                    with target.open("wb") as destination:
+                        shutil.copyfileobj(source, destination)
+
+    except Exception as exc:
+        st.error("Unable to download or extract the deployment data bundle.")
+        st.exception(exc)
+        st.stop()
+
+    finally:
+        if archive_path.exists():
+            archive_path.unlink()
+
+    missing = [
+        str(path.relative_to(ROOT))
+        for path in required_files.values()
+        if not path.exists()
+    ]
+
+    if missing:
+        st.error("The data bundle is missing required files: " + ", ".join(missing))
+        st.stop()
+
+
+ensure_data_files()
 
 
 @st.cache_data
