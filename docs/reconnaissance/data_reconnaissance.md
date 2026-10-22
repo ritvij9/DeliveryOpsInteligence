@@ -139,3 +139,42 @@ Late delivery rate = (orders delivered after estimate / orders with both timesta
 Orders without an actual customer-delivery timestamp are excluded from this baseline calculation, not classified as on time or late. Missing timestamps and chronology violations should be reported as separate data-quality measures.
 
 This is an initial descriptive baseline for the supplied historical dataset, not a validated current business-performance benchmark. Before finalizing the KPI, the analysis should explicitly define the eligible order population and treatment of order statuses.
+
+## 10. Monthly late-delivery analysis
+
+### Method
+
+Orders were grouped by purchase month using `purchase_ts`. The analysis included orders with both actual customer-delivery and estimated-delivery timestamps.
+
+An order was classified as late when its actual customer-delivery timestamp was later than its estimated-delivery timestamp.
+
+### Monthly results: January–August 2018
+
+| Purchase month | Eligible orders | Average estimated days | Average actual transit days | Late-delivery rate |
+|---|---:|---:|---:|---:|
+| January | 7,069 | 26.32 | 14.08 | 6.56% |
+| February | 6,556 | 24.55 | 16.95 | 16.00% |
+| March | 7,003 | 22.05 | 16.30 | 21.36% |
+| April | 6,798 | 23.70 | 11.50 | 5.31% |
+| May | 6,749 | 22.91 | 11.42 | 8.24% |
+| June | 6,096 | 27.79 | 9.24 | 1.36% |
+| July | 6,156 | 19.71 | 8.96 | 4.48% |
+| August | 6,351 | 15.21 | 7.73 | 10.39% |
+
+### Observations
+
+- March had the highest observed late-delivery rate in this period, at 21.36% (1,496 late orders out of 7,003 eligible orders).
+- June had the lowest observed rate, at 1.36% (83 out of 6,096 eligible orders).
+- August's late-delivery rate increased to 10.39%, despite having the shortest average actual transit time in this period, at 7.73 days.
+- Average estimated delivery windows varied by month, from 15.21 days in August to 27.79 days in June.
+- Among late orders, the average delay was 9.56 days in March and 12.11 days in June. June had only 83 late orders, compared with 1,496 in March.
+
+These results show that late-delivery frequency, transit time, and delay severity are different measures. An order can have a shorter transit time and still be late if its estimated delivery window is shorter.
+
+### Limitations and interpretation
+
+This is a descriptive analysis of historical data. Monthly differences do not establish their causes and should not be interpreted as proof of operational improvement or deterioration.
+
+The analysis does not yet control for differences in destination, seller, product, order characteristics, or other factors that may affect delivery performance. September and October 2018 had no eligible orders in the current monthly analysis, so they are excluded from the table.
+
+The monthly results should be treated as exploratory findings. Further segmentation and validation are required before attributing the differences to operational performance.
